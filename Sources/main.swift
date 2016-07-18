@@ -1,8 +1,8 @@
 //
 //  main.swift
-//  PerfectTemplate
+//  PerfectDocGenerator
 //
-//  Created by Kyle Jessup on 2015-11-05.
+//  Created by Jonathan Guthrie on 2016-07-16.
 //	Copyright (C) 2015 PerfectlySoft, Inc.
 //
 //===----------------------------------------------------------------------===//
@@ -18,40 +18,94 @@
 //
 
 import PerfectLib
-import PerfectHTTP
-import PerfectHTTPServer
 
-// Create HTTP server.
-let server = HTTPServer()
+let workingDir = Dir.workingDir
+print("Working Directory: \(workingDir.path)")
 
-// Register your own routes and handlers
-var routes = Routes()
-routes.add(method: .get, uri: "/", handler: {
-		request, response in
-		response.appendBody(string: "<html><title>Hello, world!</title><body>Hello, world!</body></html>")
-		response.completed()
-	}
-)
+let docsDir = Dir("\(workingDir.path)PerfectDocs")
+//print("docsDir Directory: \(docsDir.path)")
 
-// Add the routes to the server.
-server.addRoutes(routes)
+let docsUIDir = Dir("\(workingDir.path)PerfectDocsUI")
+//print("docsUIDir Directory: \(docsUIDir.path)")
 
-// Set a listen port of 8181
-server.serverPort = 8181
 
-// Set a document root.
-// This is optional. If you do not want to serve static content then do not set this.
-// Setting the document root will automatically add a static file handler for the route /**
-server.documentRoot = "./webroot"
 
-// Gather command line options and further configure the server.
-// Run the server with --help to see the list of supported arguments.
-// Command line arguments will supplant any of the values set above.
-configureServer(server)
-
-do {
-	// Launch the HTTP server.
-	try server.start()
-} catch PerfectError.networkError(let err, let msg) {
-	print("Network error thrown: \(err) \(msg)")
+if docsDir.exists {
+	print("Updating Docs Repo")
+	try docsDir.setAsWorkingDir()
+	let _ = try runProc(cmd: "git", args: ["pull"], read: true)
+} else {
+	print("Checking out Docs Repo")
+	let _ = try runProc(cmd: "git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocs.git"], read: true)
+	try docsDir.setAsWorkingDir()
 }
+
+//let thisDir = Dir("/path/to/directory/")
+//try thisDir.setAsWorkingDir()
+
+let thisDir = Dir("\(workingDir.path)PerfectDocs/guide")
+
+var mdFiles = [String]()
+try thisDir.forEachEntry(closure: {
+	fn in
+	// does filename end with md
+	if fn.hasSuffix(".md") {
+		mdFiles.append(fn)
+	}
+})
+
+
+if docsUIDir.exists {
+	print("Updating DocsUI Repo")
+	try docsUIDir.setAsWorkingDir()
+	let _ = try runProc(cmd: "git", args: ["pull"], read: true)
+} else {
+	print("Checking out DocsUI Repo")
+	try workingDir.setAsWorkingDir()
+	let _ = try runProc(cmd: "git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocsUI.git"], read: true)
+	try docsUIDir.setAsWorkingDir()
+}
+
+// rip through JSON TOC
+let jsonSource = File("../PerfectDocs/guide/toc.json")
+let jsonSourceData = try jsonSource.readString()
+let toc = runTOC(str: jsonSourceData)
+jsonSource.close()
+
+let sourceFile = File("source.html")
+let sourceData = try sourceFile.readString()
+let sourceWithTOC = sourceData.stringByReplacing(string: "LOADINGTOC", withString: toc)
+sourceFile.close()
+
+print("Generating HTML files now.")
+let filePath = Dir.workingDir
+
+print(filePath.path)
+
+for doc in mdFiles {
+	let htmlName = doc.stringByReplacing(string: ".md", withString: ".html")
+	let arg = "../PerfectDocs/guide/\(doc)"
+//	let html = try runProc(cmd: "/usr/local/bin/kramdown", args: ["--input","GFM","--syntax-highlighter","rouge","--syntax-highlighter-opts","{default_lang : bash}",arg], read: true)
+	//	let html = try runProc(cmd: "/usr/local/bin/redcarpet", args: ["fenced_code_blocks",arg], read: true)
+	let html = try runProc(cmd: "/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
+	var sourceWithHTML = sourceWithTOC.stringByReplacing(string: "LOADINGMD", withString: html!)
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: swift;\">")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
+
+
+
+
+//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<p><code>", withString: "<pre><code>")
+//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></p>", withString: "</code></pre>")
+
+
+	let fileIs = File("\(filePath.path)\(htmlName)")
+	try fileIs.open(.readWrite)
+	try fileIs.write(string: sourceWithHTML)
+	fileIs.close()
+}
+
+
+
+
