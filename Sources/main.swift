@@ -33,10 +33,10 @@ let docsUIDir = Dir("\(workingDir.path)PerfectDocsUI")
 if docsDir.exists {
 	print("Updating Docs Repo")
 	try docsDir.setAsWorkingDir()
-	let _ = try runProc(cmd: "git", args: ["pull"], read: true)
+	let _ = try runProc("git", args: ["pull"], read: true)
 } else {
 	print("Checking out Docs Repo")
-	let _ = try runProc(cmd: "git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocs.git"], read: true)
+	let _ = try runProc("git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocs.git"], read: true)
 	try docsDir.setAsWorkingDir()
 }
 
@@ -58,18 +58,18 @@ try thisDir.forEachEntry(closure: {
 if docsUIDir.exists {
 	print("Updating DocsUI Repo")
 	try docsUIDir.setAsWorkingDir()
-	let _ = try runProc(cmd: "git", args: ["pull"], read: true)
+	let _ = try runProc("git", args: ["pull"], read: true)
 } else {
 	print("Checking out DocsUI Repo")
 	try workingDir.setAsWorkingDir()
-	let _ = try runProc(cmd: "git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocsUI.git"], read: true)
+	let _ = try runProc("git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocsUI.git"], read: true)
 	try docsUIDir.setAsWorkingDir()
 }
 
 // rip through JSON TOC
 let jsonSource = File("../PerfectDocs/guide/toc.json")
 let jsonSourceData = try jsonSource.readString()
-let toc = runTOC(str: jsonSourceData)
+let toc = runTOC(jsonSourceData)
 jsonSource.close()
 
 let sourceFile = File("source.html")
@@ -83,11 +83,16 @@ let filePath = Dir.workingDir
 print(filePath.path)
 
 for doc in mdFiles {
-	let htmlName = doc.stringByReplacing(string: ".md", withString: ".html")
+	var htmlName = doc.stringByReplacing(string: ".md", withString: ".html")
+
+	// force intro to be home
+	if htmlName == "introduction.html" {
+		htmlName = "index.html"
+	}
 	let arg = "../PerfectDocs/guide/\(doc)"
-//	let html = try runProc(cmd: "/usr/local/bin/kramdown", args: ["--input","GFM","--syntax-highlighter","rouge","--syntax-highlighter-opts","{default_lang : bash}",arg], read: true)
-	//	let html = try runProc(cmd: "/usr/local/bin/redcarpet", args: ["fenced_code_blocks",arg], read: true)
-	let html = try runProc(cmd: "/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
+//	let html = try runProc("/usr/local/bin/kramdown", args: ["--input","GFM","--syntax-highlighter","rouge","--syntax-highlighter-opts","{default_lang : bash}",arg], read: true)
+	//	let html = try runProc("/usr/local/bin/redcarpet", args: ["fenced_code_blocks",arg], read: true)
+	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
 	var sourceWithHTML = sourceWithTOC.stringByReplacing(string: "LOADINGMD", withString: html!)
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: swift;\">")
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")

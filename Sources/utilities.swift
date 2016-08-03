@@ -14,7 +14,7 @@ import PerfectLib
 	import Darwin
 #endif
 
-func runProc(cmd: String, args: [String], read: Bool = false) throws -> String? {
+func runProc(_ cmd: String, args: [String], read: Bool = false) throws -> String? {
 	let envs = [("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local:/usr/local/Cellar"),
 	            ("LANG", "en_CA.UTF-8")]
 	let proc = try SysProcess(cmd, args: args, env: envs)
@@ -23,7 +23,7 @@ func runProc(cmd: String, args: [String], read: Bool = false) throws -> String? 
 		var ary = [UInt8]()
 		while true {
 			do {
-				guard let s = try proc.stdout?.readSomeBytes(count: 1024) where s.count > 0 else {
+				guard let s = try proc.stdout?.readSomeBytes(count: 1024) , s.count > 0 else {
 					break
 				}
 				ary.append(contentsOf: s)
@@ -44,12 +44,12 @@ func runProc(cmd: String, args: [String], read: Bool = false) throws -> String? 
 	return ret
 }
 
-func runTOC(str: String) -> String {
+func runTOC(_ str: String) -> String {
 	var out = ""
 	do {
 		let thisJSON = try str.jsonDecode() as? [String:Any]
 		let contents = thisJSON!["contents"] as! [Any]
-		out += runTOCnode(json: contents)
+		out += runTOCnode(contents)
 	} catch let e {
 		print(e)
 		return out
@@ -57,16 +57,17 @@ func runTOC(str: String) -> String {
 	return out
 }
 
-func runTOCnode(json: [Any]) -> String {
+func runTOCnode(_ json: [Any]) -> String {
 	var out = ""
 	for index in 0..<json.count {
 		let thisNode = json[index] as! [String:Any]
 		let thisDoc = thisNode["doc"]
 		let thisName = thisNode["name"]
-		let thisNested = thisNode["contents"] as? [Any]
 		out += "<li><a href='\(thisDoc!).html' class='noul'>\(thisName!)</a></li>"
-		if thisNested?.count > 0 {
-			out += runTOCnode(json: thisNested!)
+
+
+		if let thisNested = thisNode["contents"] as? [Any] , thisNested.count > 0 {
+			out += runTOCnode(thisNested)
 		}
 	}
 	out = "<ul class='tocmenu'>\(out)</ul>"
