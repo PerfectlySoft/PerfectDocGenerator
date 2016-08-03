@@ -1,4 +1,4 @@
-# PerfectTemplate
+# Perfect Documentation Generator
 
 Perfect Documentation build process.
 
