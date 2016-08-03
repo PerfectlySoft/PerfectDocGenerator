@@ -2,7 +2,7 @@
 
 Perfect Documentation build process.
 
-This script will checkout the PerfectDocs and PerfectDocsUI repos, and combine the two.
+This script will checkout the [PerfectDocs](https://github.com/PerfectlySoft/PerfectDocs) and [PerfectDocsUI](https://github.com/PerfectlySoft/PerfectDocsUI) repos, and combine the two.
 
 ### Setup
 
