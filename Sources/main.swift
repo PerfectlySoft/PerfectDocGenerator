@@ -18,14 +18,15 @@
 //
 
 import PerfectLib
+import PerfectZip
 
 let workingDir = Dir.workingDir
 print("Working Directory: \(workingDir.path)")
 
-let docsDir = Dir("\(workingDir.path)PerfectDocs")
+let docsDir = Dir("\(workingDir.path)PerfectDocsSource")
 //print("docsDir Directory: \(docsDir.path)")
 
-let docsUIDir = Dir("\(workingDir.path)PerfectDocsUI")
+let docsUIDir = Dir("\(workingDir.path)PerfectDocumentation")
 //print("docsUIDir Directory: \(docsUIDir.path)")
 
 
@@ -36,14 +37,11 @@ if docsDir.exists {
 	let _ = try runProc("git", args: ["pull"], read: true)
 } else {
 	print("Checking out Docs Repo")
-	let _ = try runProc("git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocs.git"], read: true)
+	let _ = try runProc("git", args: ["clone","--depth","1","https://github.com/PerfectlySoft/PerfectDocs.git","PerfectDocsSource"], read: true)
 	try docsDir.setAsWorkingDir()
 }
 
-//let thisDir = Dir("/path/to/directory/")
-//try thisDir.setAsWorkingDir()
-
-let thisDir = Dir("\(workingDir.path)PerfectDocs/guide")
+let thisDir = Dir("\(workingDir.path)PerfectDocsSource/guide")
 
 var mdFiles = [String]()
 try thisDir.forEachEntry(closure: {
@@ -62,12 +60,12 @@ if docsUIDir.exists {
 } else {
 	print("Checking out DocsUI Repo")
 	try workingDir.setAsWorkingDir()
-	let _ = try runProc("git", args: ["clone","https://github.com/PerfectlySoft/PerfectDocsUI.git"], read: true)
+	let _ = try runProc("git", args: ["clone","--depth","1","https://github.com/PerfectlySoft/PerfectDocsUI.git","PerfectDocumentation"], read: true)
 	try docsUIDir.setAsWorkingDir()
 }
 
 // rip through JSON TOC
-let jsonSource = File("../PerfectDocs/guide/toc.json")
+let jsonSource = File("../PerfectDocsSource/guide/toc.json")
 let jsonSourceData = try jsonSource.readString()
 let toc = runTOC(jsonSourceData)
 jsonSource.close()
@@ -89,9 +87,8 @@ for doc in mdFiles {
 	if htmlName == "introduction.html" {
 		htmlName = "index.html"
 	}
-	let arg = "../PerfectDocs/guide/\(doc)"
-//	let html = try runProc("/usr/local/bin/kramdown", args: ["--input","GFM","--syntax-highlighter","rouge","--syntax-highlighter-opts","{default_lang : bash}",arg], read: true)
-	//	let html = try runProc("/usr/local/bin/redcarpet", args: ["fenced_code_blocks",arg], read: true)
+	let arg = "../PerfectDocsSource/guide/\(doc)"
+
 	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
 	var sourceWithHTML = sourceWithTOC.stringByReplacing(string: "LOADINGMD", withString: html!)
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: swift;\">")
@@ -99,17 +96,25 @@ for doc in mdFiles {
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
 
 
-
-
-//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<p><code>", withString: "<pre><code>")
-//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></p>", withString: "</code></pre>")
-
-
 	let fileIs = File("\(filePath.path)\(htmlName)")
 	try fileIs.open(.readWrite)
 	try fileIs.write(string: sourceWithHTML)
 	fileIs.close()
+
 }
+
+print("now compressing artifact")
+// reset working dir
+do {
+	try workingDir.setAsWorkingDir()
+} catch {
+	print("Cannot reset the working directory")
+}
+let sourceDir = "PerfectDocumentation"
+let destinationZip = "PerfectDocs.zip"
+let zippy = Zip()
+let ZipResult = zippy.zipFiles(paths: [sourceDir], zipFilePath: destinationZip, overwrite: true, password: "")
+//XCTAssert(ZipResult == .ZipSuccess, ZipResult.description)
 
 
 
