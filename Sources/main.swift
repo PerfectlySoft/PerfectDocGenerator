@@ -95,9 +95,12 @@ for doc in mdFiles {
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
 
+	// fix links
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "https://github.com/PerfectlySoft/PerfectDocs/blob/master/guide/", withString: "/docs/")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: ".md", withString: ".html")
 
 	let fileIs = File("\(filePath.path)\(htmlName)")
-	try fileIs.open(.readWrite)
+	try fileIs.open(.truncate)
 	try fileIs.write(string: sourceWithHTML)
 	fileIs.close()
 

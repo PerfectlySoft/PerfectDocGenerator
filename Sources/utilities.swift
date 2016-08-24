@@ -63,7 +63,11 @@ func runTOCnode(_ json: [Any]) -> String {
 		let thisNode = json[index] as! [String:Any]
 		let thisDoc = thisNode["doc"]
 		let thisName = thisNode["name"]
-		out += "<li><a href='\(thisDoc!).html' class='noul'>\(thisName!)</a></li>"
+		var thisLink = thisDoc as! String
+		if thisLink == "introduction" {
+			thisLink = " index"
+		}
+		out += "<li><a href='\(thisLink).html' class='noul'>\(thisName!)</a></li>"
 
 
 		if let thisNested = thisNode["contents"] as? [Any] , thisNested.count > 0 {
