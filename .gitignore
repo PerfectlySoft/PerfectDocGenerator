@@ -66,3 +66,6 @@ Packages/
 *.xcodeproj
 Tests/
 webroot/
+PerfectDocsSource/
+PerfectDocumentation/
+PerfectDocs.zip
