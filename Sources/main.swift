@@ -42,6 +42,7 @@ if docsDir.exists {
 }
 
 let thisDir = Dir("\(workingDir.path)PerfectDocsSource/guide")
+let thisDirCN = Dir("\(workingDir.path)PerfectDocsSource/guide.zh_CN")
 
 var mdFiles = [String]()
 try thisDir.forEachEntry(closure: {
@@ -49,6 +50,15 @@ try thisDir.forEachEntry(closure: {
 	// does filename end with md
 	if fn.hasSuffix(".md") {
 		mdFiles.append(fn)
+	}
+})
+
+var mdFilesCN = [String]()
+try thisDirCN.forEachEntry(closure: {
+	fn in
+	// does filename end with md
+	if fn.hasSuffix(".md") {
+		mdFilesCN.append(fn)
 	}
 })
 
@@ -64,6 +74,9 @@ if docsUIDir.exists {
 	try docsUIDir.setAsWorkingDir()
 }
 
+// ================================================================
+// English Docs
+// ================================================================
 // rip through JSON TOC
 let jsonSource = File("../PerfectDocsSource/guide/toc.json")
 let jsonSourceData = try jsonSource.readString()
@@ -103,8 +116,59 @@ for doc in mdFiles {
 	try fileIs.open(.truncate)
 	try fileIs.write(string: sourceWithHTML)
 	fileIs.close()
-
+	
 }
+
+// ================================================================
+// Chinese Docs
+// ================================================================
+// rip through JSON TOC
+let jsonSourceCN = File("../PerfectDocsSource/guide.zh_CN/toc.json")
+let jsonSourceDataCN = try jsonSourceCN.readString()
+let tocCN = runTOC(jsonSourceDataCN, lang: "zh_CN")
+jsonSourceCN.close()
+//print(tocCN)
+
+let sourceFileCN = File("source.html")
+let sourceDataCN = try sourceFileCN.readString()
+var sourceWithTOCCN = sourceDataCN.stringByReplacing(string: "LOADINGTOC", withString: tocCN)
+sourceWithTOCCN = sourceWithTOCCN.stringByReplacing(string: "<span class=\"left\">Documentation</span>", withString: "<span class=\"left\">简体中文</span>")
+sourceFileCN.close()
+
+print("Generating Chinese HTML files now.")
+let filePathCN = Dir.workingDir
+
+print(filePathCN.path)
+
+for doc in mdFilesCN {
+	var htmlName = doc.stringByReplacing(string: ".md", withString: "_zh_CN.html")
+
+	// force intro to be home
+	if htmlName == "introduction_zh_CN.html" {
+		htmlName = "index_zh_CN.html"
+	}
+	let arg = "../PerfectDocsSource/guide.zh_CN/\(doc)"
+
+	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
+	var sourceWithHTML = sourceWithTOCCN.stringByReplacing(string: "LOADINGMD", withString: html!)
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: swift;\">")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
+
+	// fix links
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "https://github.com/PerfectlySoft/PerfectDocs/blob/master/guide.zh_CN/", withString: "/docs/")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: ".md", withString: ".html")
+
+	let fileIs = File("\(filePath.path)\(htmlName)")
+	try fileIs.open(.truncate)
+	try fileIs.write(string: sourceWithHTML)
+	fileIs.close()
+	
+}
+
+
+
+
 
 print("now compressing artifact")
 // reset working dir

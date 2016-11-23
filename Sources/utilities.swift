@@ -44,12 +44,12 @@ func runProc(_ cmd: String, args: [String], read: Bool = false) throws -> String
 	return ret
 }
 
-func runTOC(_ str: String) -> String {
-	var out = ""
+func runTOC(_ str: String, lang: String = "") -> String {
+	var out = "<a href=\"index.html\" style=\"margin-right: 10px\"><img src=\"images/United-Kingdom-flag-icon.png\" height=\"30px\" border=\"0\" /></a><a href=\"index_zh_CN.html\"><img src=\"images/China-Flag-icon.png\" height=\"30px\" border=\"0\" /></a>"
 	do {
 		let thisJSON = try str.jsonDecode() as? [String:Any]
 		let contents = thisJSON!["contents"] as! [Any]
-		out += runTOCnode(contents)
+		out += runTOCnode(contents, lang: lang)
 	} catch let e {
 		print(e)
 		return out
@@ -57,8 +57,12 @@ func runTOC(_ str: String) -> String {
 	return out
 }
 
-func runTOCnode(_ json: [Any]) -> String {
+func runTOCnode(_ json: [Any], lang: String = "") -> String {
 	var out = ""
+	var langAddition = ""
+	if lang != "" {
+		langAddition = "_\(lang)"
+	}
 	for index in 0..<json.count {
 		let thisNode = json[index] as! [String:Any]
 		let thisDoc = thisNode["doc"]
@@ -67,11 +71,10 @@ func runTOCnode(_ json: [Any]) -> String {
 		if thisLink == "introduction" {
 			thisLink = " index"
 		}
-		out += "<li><a href='\(thisLink).html' class='noul'>\(thisName!)</a></li>"
-
+		out += "<li><a href='\(thisLink)\(langAddition).html' class='noul'>\(thisName!)</a></li>"
 
 		if let thisNested = thisNode["contents"] as? [Any] , thisNested.count > 0 {
-			out += runTOCnode(thisNested)
+			out += runTOCnode(thisNested, lang: lang)
 		}
 	}
 	out = "<ul class='tocmenu'>\(out)</ul>"
