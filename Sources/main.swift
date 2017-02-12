@@ -151,7 +151,7 @@ for doc in mdFilesCN {
 
 	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
 	var sourceWithHTML = sourceWithTOCCN.stringByReplacing(string: "LOADINGMD", withString: html!)
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: swift;\">")
+	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: shell;\">")
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
 	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
 
