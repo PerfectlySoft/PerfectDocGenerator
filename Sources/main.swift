@@ -19,6 +19,7 @@
 
 import PerfectLib
 import PerfectZip
+import PerfectMarkdown
 
 let workingDir = Dir.workingDir
 print("Working Directory: \(workingDir.path)")
@@ -102,21 +103,36 @@ for doc in mdFiles {
 	}
 	let arg = "../PerfectDocsSource/guide/\(doc)"
 
-	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
-	var sourceWithHTML = sourceWithTOC.stringByReplacing(string: "LOADINGMD", withString: html!)
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: shell;\">")
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
 
-	// fix links
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "https://github.com/PerfectlySoft/PerfectDocs/blob/master/guide/", withString: "/docs/")
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: ".md", withString: ".html")
+	let thisFile = File(arg)
+	defer {
+		thisFile.close()
+	}
+	do {
+//		let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
+		try thisFile.open(.read, permissions: .rwUserGroup)
+		let html = try thisFile.readString().markdownToHTML
+		var sourceWithHTML = sourceWithTOC.stringByReplacing(string: "LOADINGMD", withString: html!)
+//		sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: shell;\">")
+//		sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
+//		sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
 
-	let fileIs = File("\(filePath.path)\(htmlName)")
-	try fileIs.open(.truncate)
-	try fileIs.write(string: sourceWithHTML)
-	fileIs.close()
-	
+				sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"lang-swift\">", withString: "<pre class=\"brush: swift;\">")
+
+		// fix links
+		sourceWithHTML = sourceWithHTML.stringByReplacing(string: "https://github.com/PerfectlySoft/PerfectDocs/blob/master/guide/", withString: "/docs/")
+		sourceWithHTML = sourceWithHTML.stringByReplacing(string: ".md", withString: ".html")
+
+		let fileIs = File("\(filePath.path)\(htmlName)")
+		try fileIs.open(.truncate)
+		try fileIs.write(string: sourceWithHTML)
+		fileIs.close()
+		
+	} catch {
+		print(error)
+	}
+
+
 }
 
 // ================================================================
@@ -149,21 +165,32 @@ for doc in mdFilesCN {
 	}
 	let arg = "../PerfectDocsSource/guide.zh_CN/\(doc)"
 
-	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
-	var sourceWithHTML = sourceWithTOCCN.stringByReplacing(string: "LOADINGMD", withString: html!)
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: shell;\">")
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
+	let thisFile = File(arg)
+	defer {
+		thisFile.close()
+	}
+	do {
+	//	let html = try runProc("/usr/local/bin/hoedown", args: ["--fenced-code",arg], read: true)
+		try thisFile.open(.read, permissions: .rwUserGroup)
+		let html = try thisFile.readString().markdownToHTML
+		var sourceWithHTML = sourceWithTOCCN.stringByReplacing(string: "LOADINGMD", withString: html!)
+	//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code>", withString: "<pre class=\"brush: shell;\">")
+	//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"language-swift\">", withString: "<pre class=\"brush: swift;\">")
+	//	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "</code></pre>", withString: "</pre>")
+			sourceWithHTML = sourceWithHTML.stringByReplacing(string: "<pre><code class=\"lang-swift\">", withString: "<pre class=\"brush: swift;\">")
 
-	// fix links
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: "https://github.com/PerfectlySoft/PerfectDocs/blob/master/guide.zh_CN/", withString: "/docs/")
-	sourceWithHTML = sourceWithHTML.stringByReplacing(string: ".md", withString: ".html")
+		// fix links
+		sourceWithHTML = sourceWithHTML.stringByReplacing(string: "https://github.com/PerfectlySoft/PerfectDocs/blob/master/guide.zh_CN/", withString: "/docs/")
+		sourceWithHTML = sourceWithHTML.stringByReplacing(string: ".md", withString: ".html")
 
-	let fileIs = File("\(filePath.path)\(htmlName)")
-	try fileIs.open(.truncate)
-	try fileIs.write(string: sourceWithHTML)
-	fileIs.close()
-	
+		let fileIs = File("\(filePath.path)\(htmlName)")
+		try fileIs.open(.truncate)
+		try fileIs.write(string: sourceWithHTML)
+		fileIs.close()
+	} catch {
+		print(error)
+	}
+
 }
 
 
