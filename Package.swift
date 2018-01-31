@@ -25,7 +25,7 @@ let package = Package(
 	name: "PerfectDocGenerator",
 	targets: [],
 	dependencies: [
-		.Package(url: "https://github.com/PerfectlySoft/Perfect.git", majorVersion:3),
+		.Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion:3),
 		.Package(url: "https://github.com/PerfectlySoft/Perfect-Zip.git", majorVersion:3)
     ]
 )
