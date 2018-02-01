@@ -26,6 +26,7 @@ let package = Package(
 	targets: [],
 	dependencies: [
 		.Package(url: "https://github.com/PerfectlySoft/PerfectLib.git", majorVersion:3),
-		.Package(url: "https://github.com/PerfectlySoft/Perfect-Zip.git", majorVersion:3)
+		.Package(url: "https://github.com/PerfectlySoft/Perfect-Zip.git", majorVersion:3),
+		.Package(url: "https://github.com/PerfectlySoft/Perfect-Markdown.git", majorVersion: 3)
     ]
 )

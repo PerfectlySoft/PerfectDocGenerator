@@ -23,7 +23,7 @@
 
 <p align="center">
     <a href="https://developer.apple.com/swift/" target="_blank">
-        <img src="https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat" alt="Swift 3.0">
+        <img src="https://img.shields.io/badge/Swift-4.0-orange.svg?style=flat" alt="Swift 4.0">
     </a>
     <a href="https://developer.apple.com/swift/" target="_blank">
         <img src="https://img.shields.io/badge/Platforms-OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat" alt="Platforms OS X | Linux">
@@ -43,16 +43,6 @@
 Perfect Documentation build process.
 
 This script will checkout the [PerfectDocs](https://github.com/PerfectlySoft/PerfectDocs) and [PerfectDocsUI](https://github.com/PerfectlySoft/PerfectDocsUI) repos, and combine the two.
-
-### Setup
-
-Install the "hoedown" markdown processor:
-
-MacOS:
-
-``` 
-brew install hoedown
-```
 
 
 ## Further Information
